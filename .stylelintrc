@@ -1,0 +1,8 @@
+{
+   "plugins": [
+       "./index.js"
+   ],
+   "rules": {
+       "plugin-migrate/use-variable-pattern": true
+   }
+}
