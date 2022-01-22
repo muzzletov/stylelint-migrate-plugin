@@ -5,7 +5,7 @@ const path = require('path');
 const ruleName = "plugin/use-variable-pattern";
 
 const messages = stylelint.utils.ruleMessages(ruleName, {
-  expected: (unfixed, fixed) => `Expected '${unfixed}' to be '${fixed}'`,
+  expected: (unfixed, fixed) => `Expected "${unfixed.replaceAll('"', "'")}" to be "${fixed.replaceAll('"', "'")}"`,
 });
 
 const getFiles = (path) => {
@@ -57,8 +57,6 @@ const variables = (() => {
   return _variables;
 })();
 
-const IssueType = { IMPORT_STATEMENT: 0, NAMESPACE_MISSING: 1 };
-
 module.exports.ruleName = ruleName;
 module.exports.messages = messages;
 
@@ -92,8 +90,6 @@ module.exports = stylelint.createPlugin(
 
         if (name != "import") return;
 
-        issueType = IssueType.IMPORT_STATEMENT
-
         stylelint.utils.report({
           message: messages.expected(`@import ${params}`, `@use ${params}`),
           node: atRule,
@@ -103,34 +99,16 @@ module.exports = stylelint.createPlugin(
       });
 
       root.walkDecls((decl) => {
-
         const { prop, value } = decl;
-        let issueType;
 
-        switch (prop[0]) {
-          case "$":
-            const namespace = variables[prop.slice(1)];
+        if(!value[0] === "$") return;
+        
+        const namespace = variables[value];
 
-            if (!namespace) return;
-
-            issueType = IssueType.NAMESPACE_MISSING;
-            break;
-
-          default:
-            return;
-        }
-
-        // If local or global variables need to be ignored
-        if (
-          (stylelint.utils.optionsHaveIgnored(options, "global") &&
-            decl.parent.type === "root") ||
-          (stylelint.utils.optionsHaveIgnored(options, "local") && decl.parent.type !== "root")
-        ) {
-          return;
-        }
+        if (!namespace) return;
 
         stylelint.utils.report({
-          message: messages.expected(value, `${namespace}.${value}`),
+          message: messages.expected(`${prop}: ${value}`, `${prop}: ${namespace}.${value}`),
           node: decl,
           result,
           ruleName
