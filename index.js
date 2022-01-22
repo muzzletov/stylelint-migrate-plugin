@@ -1,7 +1,7 @@
 const stylelint = require("stylelint");
 const fs = require('fs');
 const path = require('path');
-
+const postcss = require('postcss')
 const ruleName = "plugin/use-variable-pattern";
 
 const messages = stylelint.utils.ruleMessages(ruleName, {
@@ -61,7 +61,7 @@ module.exports.ruleName = ruleName;
 module.exports.messages = messages;
 
 module.exports = stylelint.createPlugin(
-  ruleName, function (pattern, options) {
+  ruleName, function (pattern, options, context) {
 
     return (root, result) => {
       const namespaces = new Set();
@@ -90,6 +90,12 @@ module.exports = stylelint.createPlugin(
 
         if (name != "import") return;
 
+
+        if (context.fix) {
+          atRule.name = "use";
+          return;
+        }
+
         stylelint.utils.report({
           message: messages.expected(`@import ${params}`, `@use ${params}`),
           node: atRule,
@@ -107,8 +113,15 @@ module.exports = stylelint.createPlugin(
 
         if (!namespace) return;
 
+        const expected = `${namespace}.${value}`;
+
+        if (context.fix) {
+          decl.value = expected;
+          return;
+        }
+
         stylelint.utils.report({
-          message: messages.expected(`${prop}: ${value}`, `${prop}: ${namespace}.${value}`),
+          message: messages.expected(`${prop}: ${value}`, `${prop}: ${expected}`),
           node: decl,
           result,
           ruleName
