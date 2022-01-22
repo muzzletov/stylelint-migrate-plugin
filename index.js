@@ -8,7 +8,6 @@ const messages = stylelint.utils.ruleMessages(ruleName, {
     expected: "Expected $ variable name to have $. prepended"
 });
 
-
 const getFiles = (path) => {
     const files = []
     for (const file of fs.readdirSync(path)) {
@@ -24,7 +23,6 @@ function readFile(filename) {
     let data = [];
 
     try {
-        // @ts-ignore
         data = [...fs.readFileSync(filename, 'UTF-8').matchAll(/\$[a-zA-Z0-9]+/g)].map(value=>value[0]);
     } catch (err) {
         console.error(err);
@@ -37,9 +35,7 @@ function extractNamespace(filename) {
     return filename.substr(filename.lastIndexOf("/")+1).split(".")[0];
 }
 
-
 const variables = (()=>{
-
     const files = getFiles('.');
 
     let _variables = {};
@@ -47,10 +43,14 @@ const variables = (()=>{
     for(let i = 0; i < files.length; i++) {
         const filename = files[i];
 
-        if(!filename.match(/\/_[a-zA-Z]\.scss$/)) continue;
-
+        if(!filename.match(/\/[a-zA-Z]*\.scss$/g)) continue;
         const namespace = extractNamespace(filename);
-        _variables = {..._variables, ...readFile(filename).map(variable => { variable:namespace })}
+
+        data = readFile(filename);
+
+        for (datum of data) {
+          _variables[datum] = namespace;
+        }
     }
 
     return _variables;
