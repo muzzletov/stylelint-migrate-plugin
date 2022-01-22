@@ -1,8 +1,21 @@
 {
+   "extends": [
+      "stylelint-config-standard-scss",
+      "stylelint-config-recommended-vue"
+   ],
+    
    "plugins": [
        "./index.js"
    ],
+   "overrides": [
+    {
+        "files": ["*.vue"],
+        "rules": {
+            "plugin/use-variable-pattern": true
+        }
+    }
+   ],
    "rules": {
-       "plugin-migrate/use-variable-pattern": true
+       "plugin/use-variable-pattern": true
    }
 }
