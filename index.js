@@ -19,6 +19,15 @@ const getFiles = (path) => {
   return files
 }
 
+function format(value) {
+  const namespace = variables[value];
+  return `${ namespace ? namespace+"." : ""}${value}`;
+}
+
+function getExpectedValue(value) {
+  return value.split(" ").map(value=>format(value)).join(" ");
+}
+
 function readFile(filename) {
   let data = [];
 
@@ -106,14 +115,9 @@ module.exports = stylelint.createPlugin(
 
       root.walkDecls((decl) => {
         const { prop, value } = decl;
+        const expected = getExpectedValue(value);
 
-        if(!value[0] === "$") return;
-        
-        const namespace = variables[value];
-
-        if (!namespace) return;
-
-        const expected = `${namespace}.${value}`;
+        if(expected.length == value.length) return;
 
         if (context.fix) {
           decl.value = expected;
